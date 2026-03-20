@@ -71,12 +71,20 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 - Performance analytics - score trend over time, avg score by difficulty, category breakdown, and daily streak
 
 ---
-
 ## Screenshots
 
-| Home | Quiz | Results | History |
-|------|------|---------|---------|
-| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Results](screenshots/results.png) | ![History](screenshots/history.png) |
+### Home & Quiz
+| Home | Quiz |
+|------|------|
+| ![Home](screenshots/Home.png) | ![Quiz](screenshots/Quiz.png) |
+
+### Results & History
+| Results | History |
+|---------|---------|
+| ![Results](screenshots/Results.png) | ![History1](screenshots/History1.png) |
+
+### History (continued)
+![History2](screenshots/History2.png)
 
 ---
 
