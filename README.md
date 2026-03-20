@@ -90,7 +90,7 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 
 ## Known Limitations
 
-- History is stored in the browser only — no cross-device sync
+- History is stored in the browser only - no cross-device sync
 - Groq's free tier has rate limits; heavy usage may hit them temporarily
-- No offline support — question generation needs an internet connection
+- No offline support - question generation needs an internet connection
 - LocalStorage can hold roughly 500+ attempts before hitting size limits
