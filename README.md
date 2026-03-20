@@ -7,7 +7,7 @@ A quiz app that generates questions on any topic using AI. Built with Next.js 14
 ## Setup
 
 ### Live Demo
-[ai-quiz-app-taupe-sigma.vercel.app](https://ai-quiz-app-taupe-sigma.vercel.app)
+[quizly-ai-app.vercel.app/.vercel.app](https://quizly-ai-app.vercel.app/)
 
 ### Run Locally
 
