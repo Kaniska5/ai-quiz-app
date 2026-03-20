@@ -36,10 +36,10 @@ App runs at `http://localhost:3000`
 
 Uses the **Groq API** with the `llama-3.3-70b-versatile` model.
 
-The API key stays on the server — all AI calls go through Next.js API routes:
+The API key stays on the server - all AI calls go through Next.js API routes:
 
-- `/api/generate-quiz` — takes topic, difficulty, question count, and type → returns questions as JSON
-- `/api/get-hint` — takes a question and its options → returns a subtle hint without giving away the answer
+- `/api/generate-quiz` - takes topic, difficulty, question count, and type → returns questions as JSON
+- `/api/get-hint` - takes a question and its options → returns a subtle hint without giving away the answer
 
 Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API rate limits or fails.
 
@@ -47,13 +47,13 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 
 ## Architecture
 
-**Framework:** Next.js 14 App Router — one route per page (`/`, `/quiz`, `/results`, `/history`)
+**Framework:** Next.js 14 App Router - one route per page (`/`, `/quiz`, `/results`, `/history`)
 
-**State:** React Context API (`QuizContext`) — holds the active quiz, current question index, answers, timer, hints used, and full quiz history. Chose Context over Zustand/Redux since the state shape is simple and doesn't need middleware.
+**State:** React Context API (`QuizContext`) - holds the active quiz, current question index, answers, timer, hints used, and full quiz history. Chose Context over Zustand/Redux since the state shape is simple and doesn't need middleware.
 
-**Storage:** Everything is saved to `localStorage` — quiz history and in-progress quiz state. This means progress survives page refreshes. No backend or database needed.
+**Storage:** Everything is saved to `localStorage` - quiz history and in-progress quiz state. This means progress survives page refreshes. No backend or database needed.
 
-**Types:** Strict TypeScript throughout — `Question`, `Quiz`, `QuizAttempt`, `UserAnswer`, and `QuizSettings` interfaces defined in `src/types/index.ts`.
+**Types:** Strict TypeScript throughout - `Question`, `Quiz`, `QuizAttempt`, `UserAnswer`, and `QuizSettings` interfaces defined in `src/types/index.ts`.
 
 ---
 
@@ -64,11 +64,11 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 - Multiple choice, True/False, or a mix of both
 - Optional countdown timer per quiz
 - Hints during the quiz (costs -0.25 points each)
-- Question navigation map — jump to any question directly
+- Question navigation map - jump to any question directly
 - Progress auto-saves to localStorage on every answer
 - Results page with an animated score ring and full question breakdown
 - Quiz history with filtering by difficulty and category, sorting, and retake support
-- Performance analytics — score trend over time, avg score by difficulty, category breakdown, and daily streak
+- Performance analytics - score trend over time, avg score by difficulty, category breakdown, and daily streak
 
 ---
 
@@ -85,4 +85,4 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 - History is stored in the browser only — no cross-device sync
 - Groq's free tier has rate limits; heavy usage may hit them temporarily
 - No offline support — question generation needs an internet connection
-- localStorage can hold roughly 500+ attempts before hitting size limits
+- LocalStorage can hold roughly 500+ attempts before hitting size limits
