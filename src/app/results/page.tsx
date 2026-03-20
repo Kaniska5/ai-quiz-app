@@ -52,7 +52,7 @@ function ScoreRing({ percentage, score, total, timeTaken, difficulty, category }
   const color = getColor();
 
   return (
-    <div className="flex items-center gap-8 p-6 bg-[#0f0f0f] rounded-2xl">
+    <div className="flex flex-col sm:flex-row items-center gap-6 p-5 bg-[#0f0f0f] rounded-2xl">
       {/* Ring */}
       <div className="relative flex-shrink-0" style={{ width: 140, height: 140 }}>
         <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
@@ -82,8 +82,8 @@ function ScoreRing({ percentage, score, total, timeTaken, difficulty, category }
       </div>
 
       {/* Info */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 text-center sm:text-left">
+        <div className="flex items-center justify-center sm:justify-start gap-2">
           <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
           <span className="text-white font-bold text-base">{getLabel()}</span>
         </div>
@@ -164,7 +164,7 @@ export default function ResultsPage() {
             />
 
             {/* Stats row */}
-            <div className="grid grid-cols-4 gap-3 mt-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
               {[
                 { icon: Target, label: 'Score', value: `${latestAttempt.score}/${latestAttempt.totalQuestions}` },
                 { icon: Clock, label: 'Time', value: formatTime(latestAttempt.timeTaken) },
@@ -174,7 +174,7 @@ export default function ResultsPage() {
                 <div key={label} className="text-center p-4 bg-zinc-50 rounded-xl border border-zinc-100">
                   <Icon className="w-4 h-4 text-[#f59e0b] mx-auto mb-2" />
                   <p className="text-sm font-black text-zinc-900">{value}</p>
-                  <p className="text-xs font-bold text-zinc-600 tracking-widest uppercase mt-0.5">{label}</p>
+                  <p className="text-[10px] font-bold text-zinc-600 tracking-wide uppercase mt-0.5 truncate">{label}</p>
                 </div>
               ))}
             </div>
