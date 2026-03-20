@@ -1,11 +1,104 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuiz } from '@/context/QuizContext';
 import { formatTime } from '@/utils/quizStorage';
-import { CheckCircle, XCircle, RotateCcw, Home, Clock, Target, Trophy } from 'lucide-react';
+import { CheckCircle, XCircle, RotateCcw, Home, Clock, Target, Trophy, Lightbulb, Zap } from 'lucide-react';
 
+// ── Animated Score Ring ──────────────────────────────────────────────
+function ScoreRing({ percentage, score, total, timeTaken, difficulty, category }: {
+  percentage: number;
+  score: number;
+  total: number;
+  timeTaken: number;
+  difficulty: string;
+  category: string;
+}) {
+  const [displayPct, setDisplayPct] = useState(0);
+  const [strokeDash, setStrokeDash] = useState(0);
+  const radius = 54;
+  const circumference = 2 * Math.PI * radius;
+
+  const getColor = () => {
+    if (percentage >= 80) return '#10b981'; // emerald
+    if (percentage >= 50) return '#f59e0b'; // amber
+    return '#ef4444'; // red
+  };
+
+  const getLabel = () => {
+    if (percentage >= 90) return 'Excellent performance';
+    if (percentage >= 75) return 'Good performance';
+    if (percentage >= 50) return 'Average performance';
+    return 'Needs improvement';
+  };
+
+  useEffect(() => {
+    // Animate counter and ring on mount
+    const duration = 1200;
+    const start = performance.now();
+    const raf = (now: number) => {
+      const elapsed = now - start;
+      const t = Math.min(elapsed / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3); // cubic ease-out
+      const current = Math.round(ease * percentage);
+      setDisplayPct(current);
+      setStrokeDash(ease * percentage * circumference / 100);
+      if (t < 1) requestAnimationFrame(raf);
+    };
+    requestAnimationFrame(raf);
+  }, [percentage, circumference]);
+
+  const color = getColor();
+
+  return (
+    <div className="flex items-center gap-8 p-6 bg-[#0f0f0f] rounded-2xl">
+      {/* Ring */}
+      <div className="relative flex-shrink-0" style={{ width: 140, height: 140 }}>
+        <svg width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Track */}
+          <circle
+            cx="70" cy="70" r={radius}
+            fill="none"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="10"
+          />
+          {/* Progress */}
+          <circle
+            cx="70" cy="70" r={radius}
+            fill="none"
+            stroke={color}
+            strokeWidth="10"
+            strokeLinecap="round"
+            strokeDasharray={`${strokeDash} ${circumference}`}
+            style={{ transition: 'stroke 0.3s' }}
+          />
+        </svg>
+        {/* Centre text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-3xl font-black text-white leading-none">{displayPct}%</span>
+          <span className="text-[10px] font-bold tracking-[2px] uppercase text-white/60 mt-1">Score</span>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: color }} />
+          <span className="text-white font-bold text-base">{getLabel()}</span>
+        </div>
+        <p className="text-white font-semibold text-sm">
+          {score}/{total} correct · {formatTime(timeTaken)}
+        </p>
+        <p className="text-white/70 font-medium text-sm">
+          {difficulty} · {category}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Main Results Page ────────────────────────────────────────────────
 export default function ResultsPage() {
   const router = useRouter();
   const { currentQuiz, userAnswers, quizHistory, resetQuiz } = useQuiz();
@@ -21,7 +114,7 @@ export default function ResultsPage() {
   const percentage = Math.round((latestAttempt.score / latestAttempt.totalQuestions) * 100);
 
   const getGrade = () => {
-    if (percentage >= 90) return { label: 'Excellent.', color: 'text-emerald-500' };
+    if (percentage >= 90) return { label: 'Excellent.', color: 'text-emerald-400' };
     if (percentage >= 75) return { label: 'Good.', color: 'text-white' };
     if (percentage >= 50) return { label: 'Average.', color: 'text-white' };
     return { label: 'Needs Work.', color: 'text-red-400' };
@@ -31,62 +124,66 @@ export default function ResultsPage() {
 
   return (
     <main className="min-h-screen bg-[#f9f9f9]">
-
-      {/* Nav */}
-      <nav className="bg-white border-b border-[#ebebeb] px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#f59e0b]" />
-          <span className="text-[#0f0f0f] font-black text-base tracking-tight">QUIZLY</span>
+      <nav className="bg-[#0f0f0f] px-6 py-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-[#f59e0b] rounded-lg flex items-center justify-center">
+            <Zap className="w-3.5 h-3.5 text-black" />
+          </div>
+          <span className="text-white font-black text-base tracking-tight">QUIZLY</span>
         </div>
       </nav>
 
-      {/* Hero — full width */}
-      <div className="bg-[#0f0f0f] px-6 pt-10 pb-14">
+      <div className="bg-[#0f0f0f] px-6 pt-8 pb-16 border-b-2 border-[#f59e0b]">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[#f59e0b] text-xs font-semibold tracking-[3px] uppercase mb-4">
-            Quiz Complete
-          </p>
+          <p className="text-[#f59e0b] text-xs font-bold tracking-[3px] uppercase mb-4">Quiz Complete</p>
           <h1 className={`text-5xl font-black uppercase tracking-tight leading-none mb-3 ${grade.color}`}>
             {grade.label}
           </h1>
-          <p className="text-white/40 text-sm">
+          <p className="text-white/80 font-medium text-sm">
             {latestAttempt.score} of {latestAttempt.totalQuestions} correct on{' '}
-            <span className="text-white/70 capitalize">{latestAttempt.topic}</span>
+            <span className="text-white font-bold capitalize">{latestAttempt.topic}</span>
+            {latestAttempt.hintsUsed > 0 && (
+              <span className="text-amber-400"> · {latestAttempt.hintsUsed} hint{latestAttempt.hintsUsed > 1 ? 's' : ''} used</span>
+            )}
           </p>
         </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-6 pb-12 space-y-4">
+        {/* Score Ring Card */}
+        <div className="bg-white rounded-2xl shadow-xl -mt-5 relative z-10 overflow-hidden">
+          <div className="h-1 bg-[#f59e0b]" />
+          <div className="p-6 md:p-8">
+            <ScoreRing
+              percentage={percentage}
+              score={latestAttempt.score}
+              total={latestAttempt.totalQuestions}
+              timeTaken={latestAttempt.timeTaken}
+              difficulty={latestAttempt.difficulty}
+              category={latestAttempt.category || 'General'}
+            />
 
-        {/* Score card */}
-        <div className="bg-white border border-[#e8e8e8] rounded-2xl shadow-lg p-8 -mt-6 relative z-10">
-          <div className="flex items-center justify-between mb-6 pb-6 border-b border-[#f0f0f0]">
-            <div>
-              <p className="text-xs font-bold text-[#aaa] tracking-[2px] uppercase mb-1">Overall Score</p>
-              <p className="text-6xl font-black text-[#0f0f0f]">{percentage}%</p>
+            {/* Stats row */}
+            <div className="grid grid-cols-4 gap-3 mt-5">
+              {[
+                { icon: Target, label: 'Score', value: `${latestAttempt.score}/${latestAttempt.totalQuestions}` },
+                { icon: Clock, label: 'Time', value: formatTime(latestAttempt.timeTaken) },
+                { icon: Trophy, label: 'Difficulty', value: latestAttempt.difficulty },
+                { icon: Lightbulb, label: 'Hints', value: `${latestAttempt.hintsUsed} used` },
+              ].map(({ icon: Icon, label, value }) => (
+                <div key={label} className="text-center p-4 bg-zinc-50 rounded-xl border border-zinc-100">
+                  <Icon className="w-4 h-4 text-[#f59e0b] mx-auto mb-2" />
+                  <p className="text-sm font-black text-zinc-900">{value}</p>
+                  <p className="text-xs font-bold text-zinc-600 tracking-widest uppercase mt-0.5">{label}</p>
+                </div>
+              ))}
             </div>
-            <Trophy className="w-12 h-12 text-[#e8e8e8]" />
-          </div>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { icon: Target, label: 'Score', value: `${latestAttempt.score}/${latestAttempt.totalQuestions}` },
-              { icon: Clock, label: 'Time', value: formatTime(latestAttempt.timeTaken) },
-              { icon: Trophy, label: 'Difficulty', value: latestAttempt.difficulty },
-            ].map(({ icon: Icon, label, value }) => (
-              <div key={label} className="text-center p-4 bg-[#f9f9f9] rounded-xl border border-[#e8e8e8]">
-                <Icon className="w-4 h-4 text-[#f59e0b] mx-auto mb-2" />
-                <p className="text-base font-black text-[#0f0f0f]">{value}</p>
-                <p className="text-xs font-bold text-[#aaa] tracking-widest uppercase mt-0.5">{label}</p>
-              </div>
-            ))}
           </div>
         </div>
 
-        {/* Breakdown */}
-        <div className="bg-white border border-[#e8e8e8] rounded-2xl shadow-lg p-8">
-          <h2 className="text-xs font-black text-[#0f0f0f] tracking-[2px] uppercase mb-6">
-            Question Breakdown
-          </h2>
+        {/* Question Breakdown */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-zinc-100">
+          <h2 className="text-xs font-black text-zinc-900 tracking-[2px] uppercase mb-6">Question Breakdown</h2>
           <div className="space-y-3">
             {currentQuiz.questions.map((question, index) => {
               const answer = userAnswers.find(a => a.questionId === index);
@@ -94,31 +191,25 @@ export default function ResultsPage() {
               const wasAnswered = !!answer;
               return (
                 <div key={index} className={`p-5 rounded-xl border ${
-                  !wasAnswered ? 'border-[#e8e8e8] bg-[#f9f9f9]'
+                  !wasAnswered ? 'border-zinc-200 bg-zinc-50'
                     : isCorrect ? 'border-emerald-200 bg-emerald-50'
                     : 'border-red-200 bg-red-50'
                 }`}>
                   <div className="flex items-start gap-3">
                     {!wasAnswered ? (
-                      <div className="w-5 h-5 rounded-full border-2 border-[#ccc] mt-0.5 flex-shrink-0" />
+                      <div className="w-5 h-5 rounded-full border-2 border-zinc-300 mt-0.5 flex-shrink-0" />
                     ) : isCorrect ? (
                       <CheckCircle className="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" />
                     ) : (
                       <XCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-[#0f0f0f] mb-2">
-                        {index + 1}. {question.question}
-                      </p>
+                      <p className="text-sm font-bold text-zinc-900 mb-2">{index + 1}. {question.question}</p>
                       {wasAnswered && !isCorrect && (
-                        <p className="text-xs text-red-500 mb-1 font-medium">
-                          Your answer: {answer?.selectedAnswer}
-                        </p>
+                        <p className="text-xs text-red-600 mb-1 font-bold">Your answer: {answer?.selectedAnswer}</p>
                       )}
-                      <p className="text-xs text-emerald-700 font-bold mb-1">
-                        Correct: {question.correctAnswer}
-                      </p>
-                      <p className="text-xs text-[#aaa] italic">{question.explanation}</p>
+                      <p className="text-xs text-emerald-800 font-bold mb-1">Correct: {question.correctAnswer}</p>
+                      <p className="text-xs text-zinc-600 font-medium">{question.explanation}</p>
                     </div>
                   </div>
                 </div>
@@ -127,18 +218,17 @@ export default function ResultsPage() {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => { resetQuiz(); router.push('/'); }}
-            className="flex items-center justify-center gap-2 bg-[#0f0f0f] hover:bg-[#1a1a1a] text-white text-xs font-black py-4 rounded-xl transition-all tracking-[2px] uppercase"
+            className="flex items-center justify-center gap-2 bg-[#f59e0b] hover:bg-[#e08d00] text-black text-xs font-black py-4 rounded-xl transition-all tracking-[2px] uppercase shadow-lg shadow-amber-200"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             New Quiz
           </button>
           <button
             onClick={() => router.push('/history')}
-            className="flex items-center justify-center gap-2 bg-white hover:bg-[#f9f9f9] text-[#0f0f0f] text-xs font-black py-4 rounded-xl border border-[#e8e8e8] transition-all tracking-[2px] uppercase"
+            className="flex items-center justify-center gap-2 bg-white hover:bg-zinc-50 text-zinc-900 text-xs font-black py-4 rounded-xl border border-zinc-200 transition-all tracking-[2px] uppercase"
           >
             <Home className="w-3.5 h-3.5" />
             History

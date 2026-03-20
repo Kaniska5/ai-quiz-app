@@ -4,65 +4,58 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { Quiz, QuizAttempt, QuizSettings, UserAnswer } from '@/types';
 
 interface QuizContextType {
-  // Current quiz state
   currentQuiz: Quiz | null;
   currentQuestionIndex: number;
   userAnswers: UserAnswer[];
   quizSettings: QuizSettings | null;
   startTime: number | null;
-
-  // History
+  hintsUsed: number;
   quizHistory: QuizAttempt[];
-
-  // Actions
   setCurrentQuiz: (quiz: Quiz) => void;
   setQuizSettings: (settings: QuizSettings) => void;
   answerQuestion: (answer: UserAnswer) => void;
   nextQuestion: () => void;
   previousQuestion: () => void;
+  jumpToQuestion: (index: number) => void;
   saveAttempt: (attempt: QuizAttempt) => void;
   resetQuiz: () => void;
   deleteAttempt: (id: string) => void;
+  incrementHints: () => void;
 }
 
 const QuizContext = createContext<QuizContextType | undefined>(undefined);
 
 export function QuizProvider({ children }: { children: ReactNode }) {
-  const [currentQuiz, setCurrentQuiz] = useState<Quiz | null>(null);
+  const [currentQuiz, setCurrentQuizState] = useState<Quiz | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<UserAnswer[]>([]);
   const [quizSettings, setQuizSettings] = useState<QuizSettings | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [hintsUsed, setHintsUsed] = useState(0);
   const [quizHistory, setQuizHistory] = useState<QuizAttempt[]>([]);
 
-  // Load history from localStorage on startup
   useEffect(() => {
     const saved = localStorage.getItem('quizHistory');
     if (saved) setQuizHistory(JSON.parse(saved));
-
     const savedProgress = localStorage.getItem('quizProgress');
     if (savedProgress) {
       const progress = JSON.parse(savedProgress);
-      setCurrentQuiz(progress.currentQuiz);
+      setCurrentQuizState(progress.currentQuiz);
       setCurrentQuestionIndex(progress.currentQuestionIndex);
       setUserAnswers(progress.userAnswers);
       setQuizSettings(progress.quizSettings);
       setStartTime(progress.startTime);
+      setHintsUsed(progress.hintsUsed || 0);
     }
   }, []);
 
-  // Auto-save progress whenever quiz state changes
   useEffect(() => {
     if (currentQuiz) {
       localStorage.setItem('quizProgress', JSON.stringify({
-        currentQuiz,
-        currentQuestionIndex,
-        userAnswers,
-        quizSettings,
-        startTime,
+        currentQuiz, currentQuestionIndex, userAnswers, quizSettings, startTime, hintsUsed,
       }));
     }
-  }, [currentQuiz, currentQuestionIndex, userAnswers, quizSettings, startTime]);
+  }, [currentQuiz, currentQuestionIndex, userAnswers, quizSettings, startTime, hintsUsed]);
 
   const answerQuestion = (answer: UserAnswer) => {
     setUserAnswers(prev => {
@@ -77,15 +70,17 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   };
 
   const nextQuestion = () => {
-    if (currentQuiz && currentQuestionIndex < currentQuiz.questions.length - 1) {
+    if (currentQuiz && currentQuestionIndex < currentQuiz.questions.length - 1)
       setCurrentQuestionIndex(prev => prev + 1);
-    }
   };
 
   const previousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(prev => prev - 1);
-    }
+    if (currentQuestionIndex > 0) setCurrentQuestionIndex(prev => prev - 1);
+  };
+
+  const jumpToQuestion = (index: number) => {
+    if (index >= 0 && index < (currentQuiz?.questions.length ?? 0))
+      setCurrentQuestionIndex(index);
   };
 
   const saveAttempt = (attempt: QuizAttempt) => {
@@ -95,11 +90,12 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   };
 
   const resetQuiz = () => {
-    setCurrentQuiz(null);
+    setCurrentQuizState(null);
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setQuizSettings(null);
     setStartTime(null);
+    setHintsUsed(0);
     localStorage.removeItem('quizProgress');
   };
 
@@ -109,29 +105,22 @@ export function QuizProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('quizHistory', JSON.stringify(updated));
   };
 
-  const handleSetCurrentQuiz = (quiz: Quiz) => {
-    setCurrentQuiz(quiz);
+  const setCurrentQuiz = (quiz: Quiz) => {
+    setCurrentQuizState(quiz);
     setCurrentQuestionIndex(0);
     setUserAnswers([]);
     setStartTime(Date.now());
+    setHintsUsed(0);
   };
+
+  const incrementHints = () => setHintsUsed(prev => prev + 1);
 
   return (
     <QuizContext.Provider value={{
-      currentQuiz,
-      currentQuestionIndex,
-      userAnswers,
-      quizSettings,
-      startTime,
-      quizHistory,
-      setCurrentQuiz: handleSetCurrentQuiz,
-      setQuizSettings,
-      answerQuestion,
-      nextQuestion,
-      previousQuestion,
-      saveAttempt,
-      resetQuiz,
-      deleteAttempt,
+      currentQuiz, currentQuestionIndex, userAnswers, quizSettings,
+      startTime, hintsUsed, quizHistory, setCurrentQuiz, setQuizSettings,
+      answerQuestion, nextQuestion, previousQuestion, jumpToQuestion,
+      saveAttempt, resetQuiz, deleteAttempt, incrementHints,
     }}>
       {children}
     </QuizContext.Provider>

@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Quizly — AI Quiz App
 
-## Getting Started
+A quiz app that generates questions on any topic using AI. Built with Next.js 14, Tailwind CSS, and TypeScript.
 
-First, run the development server:
+---
+
+## Setup
+
+1. Clone the repo and install dependencies
+
+```bash
+git clone https://github.com/your-username/ai-quiz-app.git
+cd ai-quiz-app
+npm install
+```
+
+2. Create a `.env.local` file in the root and add your Groq API key
+
+```env
+GROQ_API_KEY=your_api_key_here
+```
+
+You can get a free key at [console.groq.com](https://console.groq.com)
+
+3. Start the dev server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App runs at `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## AI Integration
 
-## Learn More
+Uses the **Groq API** with the `llama-3.3-70b-versatile` model.
 
-To learn more about Next.js, take a look at the following resources:
+The API key stays on the server — all AI calls go through Next.js API routes:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/api/generate-quiz` — takes topic, difficulty, question count, and type → returns questions as JSON
+- `/api/get-hint` — takes a question and its options → returns a subtle hint without giving away the answer
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API rate limits or fails.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Framework:** Next.js 14 App Router — one route per page (`/`, `/quiz`, `/results`, `/history`)
+
+**State:** React Context API (`QuizContext`) — holds the active quiz, current question index, answers, timer, hints used, and full quiz history. Chose Context over Zustand/Redux since the state shape is simple and doesn't need middleware.
+
+**Storage:** Everything is saved to `localStorage` — quiz history and in-progress quiz state. This means progress survives page refreshes. No backend or database needed.
+
+**Types:** Strict TypeScript throughout — `Question`, `Quiz`, `QuizAttempt`, `UserAnswer`, and `QuizSettings` interfaces defined in `src/types/index.ts`.
+
+---
+
+## Features
+
+- Generate quizzes on any topic with custom difficulty and question count
+- 8 preset categories (Science, History, Tech, etc.) plus a fully custom option
+- Multiple choice, True/False, or a mix of both
+- Optional countdown timer per quiz
+- Hints during the quiz (costs -0.25 points each)
+- Question navigation map — jump to any question directly
+- Progress auto-saves to localStorage on every answer
+- Results page with an animated score ring and full question breakdown
+- Quiz history with filtering by difficulty and category, sorting, and retake support
+- Performance analytics — score trend over time, avg score by difficulty, category breakdown, and daily streak
+
+---
+
+## Screenshots
+
+| Home | Quiz | Results | History |
+|------|------|---------|---------|
+| ![Home](screenshots/home.png) | ![Quiz](screenshots/quiz.png) | ![Results](screenshots/results.png) | ![History](screenshots/history.png) |
+
+---
+
+## Known Limitations
+
+- History is stored in the browser only — no cross-device sync
+- Groq's free tier has rate limits; heavy usage may hit them temporarily
+- No offline support — question generation needs an internet connection
+- localStorage can hold roughly 500+ attempts before hitting size limits
