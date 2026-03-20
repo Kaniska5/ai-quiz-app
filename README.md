@@ -6,16 +6,19 @@ A quiz app that generates questions on any topic using AI. Built with Next.js 14
 
 ## Setup
 
-1. Clone the repo and install dependencies
+### Live Demo
+[ai-quiz-app-taupe-sigma.vercel.app](https://ai-quiz-app-taupe-sigma.vercel.app)
 
+### Run Locally
+
+1. Clone the repo and install dependencies
 ```bash
-git clone https://github.com/your-username/ai-quiz-app.git
+git clone https://github.com/Kaniska5/ai-quiz-app.git
 cd ai-quiz-app
 npm install
 ```
 
 2. Create a `.env.local` file in the root and add your Groq API key
-
 ```env
 GROQ_API_KEY=your_api_key_here
 ```
@@ -23,14 +26,11 @@ GROQ_API_KEY=your_api_key_here
 You can get a free key at [console.groq.com](https://console.groq.com)
 
 3. Start the dev server
-
 ```bash
 npm run dev
 ```
 
 App runs at `http://localhost:3000`
-
----
 
 ## AI Integration
 
@@ -90,7 +90,7 @@ Both routes retry up to 3 times with exponential backoff (1s, 2s, 4s) if the API
 
 ## Known Limitations
 
-- History is stored in the browser only — no cross-device sync
+- History is stored in the browser only - no cross-device sync
 - Groq's free tier has rate limits; heavy usage may hit them temporarily
-- No offline support — question generation needs an internet connection
+- No offline support - question generation needs an internet connection
 - LocalStorage can hold roughly 500+ attempts before hitting size limits
